@@ -1,0 +1,13 @@
+x-node: &node
+  build: .
+  image: ndn-http-gw
+  volumes: [".:/workspace"]
+  working_dir: /workspace
+  tty: true
+  stdin_open: true
+  command: ["sleep", "infinity"]
+
+services:
+  gateway: { <<: *node }   # runs NFD + ./build/gateway
+  client1: { <<: *node }   # runs NFD + client tools
+  client2: { <<: *node }
