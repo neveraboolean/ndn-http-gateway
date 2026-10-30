@@ -81,6 +81,7 @@ scripts/add-route.sh gateway    # = nfdc route add /http udp4://<gateway-ip>:636
 nfdc fib list ; nfdc face list  # verify /http -> udp4 face
 ```
 Outside compose use `docker network create ndnnet`, attach containers to it, and pass the gateway's IP.
+
 Also note that if we are not using compose we need to get the gateway ip, which can be done using `ip addr show` or `hostname -I`
 
 ## 4. Test
@@ -89,6 +90,7 @@ Also note that if we are not using compose we need to get the gateway ip, which 
 LD_PRELOAD=./build/libintercept.so curl --noproxy '*' http://neverssl.com/
 ```
 Gateway log shows `http://neverssl.com/ seg=0 status=206 ...`; 
+
 We can verify this using `tcpdump -ni eth0 'udp port 6363'` which shows NDN, no TCP/80 from the client.
 
 **B. Pure NDN Interest** (client node):
