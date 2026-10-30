@@ -1,10 +1,5 @@
 # ndn-http-gateway
 
-Fetch ordinary HTTP content over **Named Data Networking**. Two pieces:
-
-- **`gateway`** (daemon): registers `/http` with NFD; turns `Interest /http/<host>/<path>/seg=N` into an HTTP request segmented `Data`.
-- **`libintercept.so`** (`LD_PRELOAD` client shim): makes unmodified programs such as `curl` speak NDN. `getaddrinfo` returns a fake IP, `connect` is redirected to a local socketpair, and the HTTP GET is turned into NDN Interests.
-
 ```
  [ Client Application ]  --->  (1) Intercept Syscalls (intercept.cpp : done by faking the address then overriding connect())
    (e.g., curl http://example.com)
@@ -37,6 +32,10 @@ Fetch ordinary HTTP content over **Named Data Networking**. Two pieces:
                             (10) Return NDN Data Packets back through NFDs to Client
 ```
 Every node runs its **own NFD**; apps only talk to their local NFD.
+
+Fetching ordinary HTTP content over **Named Data Networking**. Two pieces:
+- **`gateway`** (daemon): registers `/http` with NFD; turns `Interest /http/<host>/<path>/seg=N` into an HTTP request.
+- **`libintercept.so`** (`LD_PRELOAD` client shim): makes unmodified programs such as `curl` speak NDN. `getaddrinfo` returns a fake IP, `connect` is redirected to a local socketpair, and the HTTP GET is turned into NDN Interests.
 
 ## Layout
 ```
