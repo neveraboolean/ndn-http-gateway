@@ -88,7 +88,8 @@ Also note that if we are not using compose we need to get the gateway ip, which 
 ```bash
 LD_PRELOAD=./build/libintercept.so curl --noproxy '*' http://neverssl.com/
 ```
-Gateway log shows `http://neverssl.com/ seg=0 status=206 ...`; `tcpdump -ni eth0 'udp port 6363'` shows NDN, no TCP/80 from the client.
+Gateway log shows `http://neverssl.com/ seg=0 status=206 ...`; 
+We can verify this using `tcpdump -ni eth0 'udp port 6363'` which shows NDN, no TCP/80 from the client.
 
 **B. Pure NDN Interest** (client node):
 ```bash
