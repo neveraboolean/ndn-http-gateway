@@ -6,9 +6,35 @@ Fetch ordinary HTTP content over **Named Data Networking**. Two pieces:
 - **`libintercept.so`** (`LD_PRELOAD` client shim): makes unmodified programs such as `curl` speak NDN. `getaddrinfo` returns a fake IP, `connect` is redirected to a local socketpair, and the HTTP GET is turned into NDN Interests.
 
 ```
- client node                         gateway node
- curl ──LD_PRELOAD──► NFD ══ UDP :6363 ══► NFD ──► gateway ──HTTP(S)──► origin
- (libintercept.so)   CS caches Data       CS caches Data   (libcurl, signs Data)
+ [ Client Application ]  --->  (1) Intercept Syscalls (intercept.cpp : done by faking the address then overriding connect())
+   (e.g., curl http://example.com)
+                                   │
+                                   ▼
+                            (2) Translate HTTP to NDN Interest (translate.cpp)
+                                   │
+                                   ▼
+                            (3) Local Client NFD
+                                   │
+                                   ▼  [ UDP Tunnel / Face ]
+                            (4) Gateway NFD (NFD forwarding : done by the nfd itself)
+                                   │
+                                   ▼
+                            (5) Gateway Daemon (gateway.cpp : since /http was registered, control goes to this code everytime a /http packet comes)
+                                   │
+                                   ▼
+                            (6) Re-translate NDN Interest to HTTP GET
+                                   │
+                                   ▼
+                            (7) Web Server (Origin)
+                                   │
+                                   ▼
+                            (8) Return HTTP Body Data
+                                   │
+                                   ▼
+                            (9) Packetize Data into NDN Data Segments (`seg=0`, `seg=1`...)
+                                   │
+                                   ▼
+                            (10) Return NDN Data Packets back through NFDs to Client
 ```
 Every node runs its **own NFD**; apps only talk to their local NFD.
 
