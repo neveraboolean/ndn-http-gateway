@@ -114,7 +114,7 @@ Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix
 - To force a new origin fetch use a new name: add a query component.
   - curl: `http://neverssl.com/?rand=1` (change the number each time).
   - ndnpeek: the `?` and `=` must be percent-encoded in a name URI: `ndnpeek -f -p "/http/neverssl.com/%3Frand%3D1/seg=0"`.
-- Experiment: run the same request twice and watch the gateway log (one line, then none); `nfdc cs info` shows hits/misses; `nfdc cs erase /http` clears the cache.
+- As an example running the same request twice and watching the gateway log (one line, then none); `nfdc cs info` shows hits/misses; `nfdc cs erase /http` clears the cache.
 
 <!--
 ## 6. Configuration
