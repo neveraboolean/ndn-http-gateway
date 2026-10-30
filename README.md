@@ -67,6 +67,7 @@ After the above steps you would be running the client and the gateway and in the
 make          # -> build/gateway, build/libintercept.so
 ```
 (Equivalent: `g++ -std=c++17 -Iinclude src/gateway.cpp build/translate.o build/packetize.o -o build/gateway $(pkg-config --cflags --libs libndn-cxx libcurl)`)
+
 Note: Running make in one container is enough since the workspace folder is common to both the containers and they will be able to access the object files.
 
 ```bash
@@ -74,6 +75,7 @@ nfd --config /usr/local/etc/ndn/nfd.conf &         # Run NFD in the background, 
 nfdc status   # Check if NFD is running.
 ```
 Note: NFD should be run in both the client and the gateway containers
+
 Note: NFD should actually start automatically via the entrypoint (check: `nfdc status`, log: `nfdlog`). But for Manual start as above: `nfd --config /usr/local/etc/ndn/nfd.conf &`.
 
 ## 3. NFD and routes
