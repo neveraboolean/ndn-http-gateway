@@ -110,6 +110,7 @@ Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix
   - ndnpeek: the `?` and `=` must be percent-encoded in a name URI: `ndnpeek -f -p "/http/neverssl.com/%3Frand%3D1/seg=0"`.
 - Experiment: run the same request twice and watch the gateway log (one line, then none); `nfdc cs info` shows hits/misses; `nfdc cs erase /http` clears the cache.
 
+<!--
 ## 6. Configuration
 | Env | Default | Meaning |
 |---|---|---|
@@ -129,3 +130,5 @@ Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix
 - `pkg-config` cannot find libndn-cxx: `export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig` (set by `bashrc.sh`).
 - Timeout: `nfdc fib list` on the client (route?), gateway log, `ndnsec list` on gateway (key?).
 - Start fresh: `docker compose down && docker compose up -d`.
+
+-->
