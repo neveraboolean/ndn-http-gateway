@@ -96,7 +96,7 @@ We can verify this using `tcpdump -ni eth0 'udp port 6363'` which shows NDN, no 
 ndnpeek -P /http/neverssl.com/        # CanBePrefix: no seg component needed; gateway answers seg=0
 ndnpeek -p /http/neverssl.com/seg=0   # exact segment name
 ```
-Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix` vs older `-p`; `-p` may mean "payload only"). Only **segment 0** (4000 bytes) is returned; use `curl` (above) for the whole body.
+Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix` vs older `-p`; `-p` may mean "payload only").
 
 `scripts/smoke-test.sh` runs both with cache-busting.
 
