@@ -22,7 +22,7 @@ Fetch ordinary HTTP content over **Named Data Networking**. Two pieces:
                             (5) Gateway Daemon (gateway.cpp : since /http was registered, control goes to this code everytime a /http packet comes)
                                    │
                                    ▼
-                            (6) Re-translate NDN Interest to HTTP GET
+                            (6) Re-translate NDN Interest to HTTP GET (done by translate.cpp)
                                    │
                                    ▼
                             (7) Web Server (Origin)
