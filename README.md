@@ -10,7 +10,7 @@ Fetch ordinary HTTP content over **Named Data Networking**. Two pieces:
    (e.g., curl http://example.com)
                                    │
                                    ▼
-                            (2) Translate HTTP to NDN Interest (translate.cpp)
+                            (2) Translate HTTP to NDN Interest (done by intercept.cpp itself)
                                    │
                                    ▼
                             (3) Local Client NFD
