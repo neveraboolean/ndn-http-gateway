@@ -2,7 +2,7 @@
 
 Fetch ordinary HTTP content over **Named Data Networking**. Two pieces:
 
-- **`gateway`** (daemon): registers `/http` with NFD; turns `Interest /http/<host>/<path>/seg=N` into an HTTP range request to the origin and answers with signed, segmented `Data`.
+- **`gateway`** (daemon): registers `/http` with NFD; turns `Interest /http/<host>/<path>/seg=N` into an HTTP request segmented `Data`.
 - **`libintercept.so`** (`LD_PRELOAD` client shim): makes unmodified programs such as `curl` speak NDN. `getaddrinfo` returns a fake IP, `connect` is redirected to a local socketpair, and the HTTP GET is turned into NDN Interests.
 
 ```
