@@ -82,6 +82,7 @@ scripts/add-route.sh gateway    # = nfdc route add /http udp4://<gateway-ip>:636
 nfdc fib list ; nfdc face list  # verify /http -> udp4 face
 ```
 Outside compose use `docker network create ndnnet`, attach containers to it, and pass the gateway's IP.
+Also note that if we are not using compose we need to get the gateway ip, which can be done using `ip addr show` or `hostname -I`
 
 ## 4. Test
 **A. Unmodified curl through NDN** (client node):
