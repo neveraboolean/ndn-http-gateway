@@ -55,21 +55,28 @@ build/      (generated) gateway, libintercept.so
 
 ## 1. Build and launch
 ```bash
-docker compose build            # ~10-20 min first time (compiles ndn-cxx, NFD, ndn-tools)
-docker compose up -d            # gateway, client1, client2 (repo mounted at /workspace)
-docker compose exec gateway bash      # terminal 1
-docker compose exec client1 bash      # terminal 2
+docker network create ndnnet            # Creates a network
+docker build -t ndn-http-gw .           # ~10-20 min first time (compiles ndn-cxx, NFD, ndn-tools)
+docker run -it --name gateway --net ndnnet -v "$PWD:/workspace" ndn-http-gw bash     # terminal 1, Runs a container(gateway) and enters its /workspace folder
+docker run -it --name client1 --net ndnnet -v "$PWD:/workspace" ndn-http-gw bash     # terminal 2, In another terminal run the client
 ```
-Note: If compose is not there use `docker network create ndnnet` (Reason explained in step 3), then do the build and run the containers below `docker build -t ndn-http-gw . && docker run -it --rm -v "$PWD:/workspace" ndn-http-gw`.
+After the above steps you would be running the client and the gateway and in their workspace folder
 
-## 2. Build the code (in any container)
+## 2. Compiling the code files using make and starting the NFD in each container
 ```bash
-cd /workspace && make          # -> build/gateway, build/libintercept.so
+make          # -> build/gateway, build/libintercept.so
 ```
 (Equivalent: `g++ -std=c++17 -Iinclude src/gateway.cpp build/translate.o build/packetize.o -o build/gateway $(pkg-config --cflags --libs libndn-cxx libcurl)`)
+Note: Running make in one container is enough since the workspace folder is common to both the containers and they will be able to access the object files.
+
+```bash
+nfd --config /usr/local/etc/ndn/nfd.conf &         # Run NFD in the background, (note you can press enter to get back control of the terminal (nfd will be running in the background)
+nfdc status   # Check if NFD is running.
+```
+Note: NFD should be run in both the client and the gateway containers
+Note: NFD should actually start automatically via the entrypoint (check: `nfdc status`, log: `nfdlog`). But for Manual start as above: `nfd --config /usr/local/etc/ndn/nfd.conf &`.
 
 ## 3. NFD and routes
-NFD starts automatically via the entrypoint (check: `nfdc status`, log: `nfdlog`). Manual start: `nfd --config /usr/local/etc/ndn/nfd.conf &`.
 
 On **gateway**:
 ```bash
@@ -80,14 +87,11 @@ On each **client**:
 scripts/add-route.sh gateway    # = nfdc route add /http udp4://<gateway-ip>:6363
 nfdc fib list ; nfdc face list  # verify /http -> udp4 face
 ```
-Outside compose use `docker network create ndnnet`, attach containers to it, and pass the gateway's IP.
-
-Also note that if we are not using compose we need to get the gateway ip, which can be done using `ip addr show` or `hostname -I`
 
 ## 4. Test
 **A. Unmodified curl through NDN** (client node):
 ```bash
-LD_PRELOAD=./build/libintercept.so curl --noproxy '*' http://neverssl.com/
+LD_PRELOAD=./build/libintercept.so curl -4 --noproxy '*' http://neverssl.com/     # The -4 is there since my code is only compatible with IPv4 (Yet to fix)
 ```
 Gateway log shows `http://neverssl.com/ seg=0 status=206 ...`; 
 
