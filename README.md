@@ -106,7 +106,7 @@ ndnpeek -p /http/neverssl.com/seg=0   # exact segment name
 ```
 Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix` vs older `-p`; `-p` may mean "payload only").
 
-`scripts/smoke-test.sh` runs both with cache-busting.
+`scripts/fetch-test.sh` runs both with cache-busting.
 
 ## 5. Caching (NFD Content Store) and cache-busting
 - Every NFD on the path caches `Data` in its **CS**. A repeated Interest is answered by the nearest copy: **no gateway log line, no HTTP request**.
