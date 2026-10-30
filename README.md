@@ -43,7 +43,7 @@ Dockerfile  docker-compose.yml  Makefile
 docker/     bashrc.sh (env, aliases)  entrypoint.sh (starts NFD, then your command)
 include/    translate.hpp  packetize.hpp
 src/        gateway.cpp  translate.cpp  packetize.cpp  intercept.cpp
-scripts/    start-gateway.sh  add-route.sh  smoke-test.sh
+scripts/    start-gateway.sh  add-route.sh  fetch-test.sh
 build/      (generated) gateway, libintercept.so
 ```
 | File | Role |
