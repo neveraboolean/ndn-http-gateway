@@ -61,7 +61,7 @@ docker compose up -d            # gateway, client1, client2 (repo mounted at /wo
 docker compose exec gateway bash      # terminal 1
 docker compose exec client1 bash      # terminal 2
 ```
-If compose is not there then do `docker build -t ndn-http-gw . && docker run -it --rm -v "$PWD:/workspace" ndn-http-gw`.
+Note: If compose is not there use `docker network create ndnnet`, then do the build and run the containers below `docker build -t ndn-http-gw . && docker run -it --rm -v "$PWD:/workspace" ndn-http-gw`. (Reason explained in step 3)
 
 ## 2. Build the code (in any container)
 ```bash
