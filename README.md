@@ -156,7 +156,7 @@ scripts/start-gateway2.sh
 scripts/add-route.sh gateway
 LD_PRELOAD=/workspace/build/libintercept2.so curl -4 -s --noproxy '*' --cacert /workspace/ca/ca.pem "https://httpbin.org/get"
 ```[cite: 1]
-
+```
 
 ## Layout
 ```
