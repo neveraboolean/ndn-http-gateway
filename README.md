@@ -33,7 +33,7 @@
 ```
 Every node runs its **own NFD**; apps only talk to their local NFD.
 
-Fetching ordinary HTTP content over **Named Data Networking**. Two pieces:
+The endpoints of the NDN island are able to fetch ordinary HTTP content over ndn and vice versa through the below two programs:
 - **`gateway`** (daemon): registers `/http` with NFD; turns `Interest /http/<host>/<path>/seg=N` into an HTTP request.
 - **`libintercept.so`** (`LD_PRELOAD` client shim): makes unmodified programs such as `curl` speak NDN. `getaddrinfo` returns a fake IP, `connect` is redirected to a local socketpair, and the HTTP GET is turned into NDN Interests.
 
