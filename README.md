@@ -134,7 +134,7 @@ HTTPS traffic is end-to-end encrypted. A standard gateway cannot read or packeti
 
 ### The Workaround Soln: Local CA & Dynamic Interception
 1. **Local Certificate Authority (CA):** We generate a local root CA (`ca/ca.key` and `ca/ca.pem`) on the host[cite: 1].
-2. **TLS Interception (`intercept2.so`):** When the client requests an HTTPS URL, the intercept library acts as a local proxy, dynamically minting and signing a dummy SSL certificate for the target domain on the fly using the local CA.
+2. **TLS Interception (`intercept2.so`):** When the client requests an HTTPS URL, the intercept library acts as a local proxy, dynamically generating and signing a dummy SSL certificate for the target domain on the fly using the local CA.
 3. **Client Trust:** By supplying the custom CA certificate (`--cacert ca/ca.pem`), the client trusts the interceptor's generated certificate, allowing plaintext requests to be safely unwrapped, mapped to `/https/...` NDN name components, and forwarded to the gateway.
 
 ### Quick Setup & Execution
