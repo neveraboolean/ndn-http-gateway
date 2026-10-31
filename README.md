@@ -106,6 +106,7 @@ ndnpeek -p /http/neverssl.com/seg=0   # exact segment name
 ```
 Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix` vs older `-p`; `-p` may mean "payload only").
 
+<!--
 `scripts/fetch-test.sh` runs both with cache-busting.
 
 ## 5. Caching (NFD Content Store) and cache-busting
@@ -116,7 +117,6 @@ Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix
   - ndnpeek: the `?` and `=` must be percent-encoded in a name URI: `ndnpeek -f -p "/http/neverssl.com/%3Frand%3D1/seg=0"`.
 - As an example running the same request twice and watching the gateway log (one line, then none); `nfdc cs info` shows hits/misses; `nfdc cs erase /http` clears the cache.
 
-<!--
 ## 6. Configuration
 | Env | Default | Meaning |
 |---|---|---|
