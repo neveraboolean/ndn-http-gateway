@@ -11,7 +11,8 @@ static std::string raw(const ndn::name::Component& c) {
 }
 
 bool nameToUrl(const Name& n, Req& r) {
-  if (n.size() < 2 || n[0].toUri() != "http") return false;
+  std::string pfx = n.size() ? raw(n[0]) : "";
+  if (n.size() < 2 || (pfx != "http" && pfx != "https")) return false;
   size_t end = n.size();
   r.hasSeg = n[-1].isSegment();
   if (r.hasSeg) { r.seg = n[-1].toSegment(); end--; }
@@ -34,7 +35,8 @@ bool nameToUrl(const Name& n, Req& r) {
   curl_easy_cleanup(c);
 
   const char* sch = getenv("GW_SCHEME");
-  r.url = std::string(sch && *sch ? sch : "http") + "://" + host + (path.empty() ? "/" : path) + q;
+  std::string scheme = pfx == "https" ? "https" : std::string(sch && *sch ? sch : "http");
+  r.url = scheme + "://" + host + (path.empty() ? "/" : path) + q;
   return true;
 }
 
