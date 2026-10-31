@@ -37,22 +37,6 @@ The endpoints of the NDN island are able to fetch ordinary HTTP content over ndn
 - **`gateway`** (daemon): registers `/http` with NFD; turns `Interest /http/<host>/<path>/seg=N` into an HTTP request.
 - **`libintercept.so`** (`LD_PRELOAD` client shim): makes unmodified programs such as `curl` speak NDN. `getaddrinfo` returns a fake IP, `connect` is redirected to a local socketpair, and the HTTP GET is turned into NDN Interests.
 
-## Layout
-```
-Dockerfile  docker-compose.yml  Makefile
-docker/     bashrc.sh (env, aliases)  entrypoint.sh (starts NFD, then your command)
-include/    translate.hpp  packetize.hpp
-src/        gateway.cpp  translate.cpp  packetize.cpp  intercept.cpp
-scripts/    start-gateway.sh  add-route.sh  fetch-test.sh
-build/      (generated) gateway, libintercept.so
-```
-| File | Role |
-|---|---|
-| `translate.cpp` | NDN name to URL, libcurl range GET |
-| `packetize.cpp` | segment to signed `Data` with `FinalBlockId`, `put` |
-| `gateway.cpp` | `Face`, `/http` filter, glue |
-| `intercept.cpp` | client `LD_PRELOAD` shim |
-
 ## 1. Build and launch
 ```bash
 docker network create ndnnet            # Creates a network
@@ -172,3 +156,20 @@ scripts/start-gateway2.sh
 scripts/add-route.sh gateway
 LD_PRELOAD=/workspace/build/libintercept2.so curl -4 -s --noproxy '*' --cacert /workspace/ca/ca.pem "https://httpbin.org/get"
 ```[cite: 1]
+
+
+## Layout
+```
+Dockerfile  docker-compose.yml  Makefile
+docker/     bashrc.sh (env, aliases)  entrypoint.sh (starts NFD, then your command)
+include/    translate.hpp  packetize.hpp
+src/        gateway.cpp  translate.cpp  packetize.cpp  intercept.cpp
+scripts/    start-gateway.sh  add-route.sh  fetch-test.sh
+build/      (generated) gateway, libintercept.so
+```
+| File | Role |
+|---|---|
+| `translate.cpp` | NDN name to URL, libcurl range GET |
+| `packetize.cpp` | segment to signed `Data` with `FinalBlockId`, `put` |
+| `gateway.cpp` | `Face`, `/http` filter, glue |
+| `intercept.cpp` | client `LD_PRELOAD` shim |
