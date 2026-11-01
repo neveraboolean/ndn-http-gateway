@@ -20,7 +20,7 @@ static thread_local bool bypass = false;           //To avoid the background int
 static const uint32_t BASE = 0x0AFF0000;           // 10.255.0.0/16 = fake range
 
 /* 
-This function overrides libc's resolver. 
+This function overrides libc's resolver.(Basically a hook)
 If the domain name is localhost, an IP literal or a bypass thread, it passes the request straight through to the real DNS system(dlysm).
 Otherwise it checks if we assigned a fake IP(10.255.x.y), if not it assigns a new one.
 It tricks curl by formatting that IP into the addrinfo format so the app thinks it successfully resolved the domain.
@@ -108,8 +108,8 @@ static void bridge(int fd, std::string host) {
 }
 
 /* 
-Hook: overrides libc connect().
-Intercepts connection attempts, redirects fake IPs to a local UNIX socketpair, spawns a background bridge thread to handle NDN translation, and passes real IPs through.
+This fucntion overrides libc connect().(Another hook)
+Intercepts connection attempts, redirects fake IPs to a local UNIX socketpair, starts a background bridge thread to handle NDN translation and passes real IPs through.
 */
 extern "C" int connect(int fd, const sockaddr* sa, socklen_t len) {
   static auto real = (int(*)(int, const sockaddr*, socklen_t))dlsym(RTLD_NEXT, "connect");
