@@ -1,4 +1,3 @@
-// packetize.cpp - builds, signs and publishes one NDN Data segment.
 #include "packetize.hpp"
 #include <ndn-cxx/encoding/block-helpers.hpp>
 using namespace ndn;
