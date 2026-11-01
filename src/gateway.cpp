@@ -10,7 +10,7 @@ static std::set<std::string> allow;
 static Face face;
 static KeyChain kc;
 
-// Handles incoming NDN Interests: validates the URL structure, enforces the host allowlist, 
+// This fucntion handles the incoming NDN request, checks the URL and sees if its in the allowlist and then
 // fetches the target segment via libcurl, and responds with a signed NDN Data packet.
 static void onInterest(const InterestFilter&, const Interest& i) {
   const Name& n = i.getName();
@@ -33,7 +33,7 @@ static void onInterest(const InterestFilter&, const Interest& i) {
   putSegment(face, kc, dn, p.body, lastSegFor(p.total, SEG));
 }
 
-// Parses environment configurations, registers the /http prefix with the local NFD daemon, 
+// It first parses environment configurations and then registers the /http prefix with the local NFD daemon, 
 // and starts the permanent event loop to process incoming Interests.
 int main() {
   if (const char* a = getenv("GW_ALLOW")) {
