@@ -13,7 +13,7 @@ After the above steps you would be running the client and the gateway and in the
 ```bash
 make          # -> build/gateway, build/libintercept.so
 ```
-(Equivalent: `g++ -std=c++17 -Iinclude src/gateway.cpp build/translate.o build/packetize.o -o build/gateway $(pkg-config --cflags --libs libndn-cxx libcurl)`)
+Equivalent: `g++ -std=c++17 -O2 -Wall -Wextra -Iinclude src/gateway.cpp build/translate.o build/packetize.o -o build/gateway $(pkg-config --cflags --libs libndn-cxx libcurl)`
 
 Note: Running make in one container is enough since the workspace folder is common to both the containers and they will be able to access the object files.
 
