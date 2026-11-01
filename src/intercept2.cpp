@@ -1,10 +1,3 @@
-// intercept2.cpp - LD_PRELOAD client shim for HTTPS. Like intercept.cpp but only port 443 is redirected:
-//  the shim acts as a local TLS server using a per-host certificate signed by a local CA the client must trust
-//  (e.g. curl --cacert ca.pem), decrypts the request, fetches via NDN /https/..., and re-encrypts the reply.
-// CA files: $NDN_CA_DIR (default /workspace/ca) containing ca.pem and ca.key.
-// Security note: whoever holds ca.key can impersonate any site to clients that trust it; keep it private.
-// Port 443 -> local TLS termination (per-host leaf cert signed by local CA) -> NDN /https/...
-// Non-443 connections to hooked hostnames are resolved and connected normally.
 #include <dlfcn.h>
 #include <netdb.h>
 #include <arpa/inet.h>
