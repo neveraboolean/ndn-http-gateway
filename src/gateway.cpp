@@ -1,10 +1,3 @@
-/*
-NDN-to-HTTP Gateway Daemon:
-- Listens for NDN Interests under the /http prefix.
-- Translates incoming names into HTTP/HTTPS URLs, fetches them via libcurl, 
-- and returns the payload wrapped inside signed NDN Data packets.
-*/
-
 #include "translate.hpp"
 #include "packetize.hpp"
 #include <iostream>
