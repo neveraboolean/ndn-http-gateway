@@ -102,7 +102,7 @@ src/        gateway.cpp  translate.cpp  packetize.cpp  intercept.cpp  gateway2.c
 scripts/    start-gateway.sh  add-route.sh  fetch-test.sh  start-gateway2.sh
 build/      (generated) gateway, libintercept.so, gateway2, libintercept2.so, packetize.o, translate.o
 ```
-A specifics of what each file can be found [here](src/README.md)
+**NOTE:  specifics of what each file can be found [here](src/README.md)**
 
 ## The Workflow of the whole process is below
 
