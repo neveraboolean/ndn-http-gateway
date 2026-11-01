@@ -1,9 +1,3 @@
-/*
-NDN-to-HTTPS Gateway Daemon:
-- Variant of gateway.cpp that handles secure traffic under the /https prefix.
-- Enforces strict HTTPS URL validation before fetching and signing segments.
-*/
-
 #include "translate.hpp"
 #include "packetize.hpp"
 #include <iostream>
