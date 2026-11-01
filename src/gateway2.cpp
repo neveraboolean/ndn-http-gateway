@@ -10,8 +10,8 @@ static std::set<std::string> allow;
 static Face face;
 static KeyChain kc;
 
-// Handles incoming HTTPS Interests: validates that the translated URL begins with 
-// "https://", checks allowlists, fetches via libcurl TLS, and returns signed data.
+// This function handles the incoming HTTPS request(that is in the form of an NDN interest packet) and checks their URL
+// "https://",then checks allowlists,and fetches via libcurl TLS, and returns signed data.
 static void onInterest(const InterestFilter&, const Interest& i) {
   const Name& n = i.getName();
   Req r;
