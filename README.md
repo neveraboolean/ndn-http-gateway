@@ -137,5 +137,5 @@ A specifics of what each file can be found [here](src/README.md)
                                    ▼
                             (10) Return NDN Data Packets back through NFDs to Client
 ```
-Note: Every node runs its own NFD; apps only talk to their local NFD.
+Note: Every node runs its own NFD and the apps only talk to their local NFD.
 
