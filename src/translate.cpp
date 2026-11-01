@@ -1,9 +1,3 @@
-/*
-NDN-to-URL Translation and Range Fetch Module:
-- Parses structured NDN names into standard HTTP/HTTPS URLs.
-- Executes libcurl range requests to fetch specific byte segments from the origin.
-*/
-
 #include "translate.hpp"
 #include <curl/curl.h>
 #include <strings.h>
