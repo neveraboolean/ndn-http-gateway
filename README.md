@@ -57,8 +57,6 @@ Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix
 
 ## HTTPS Extension (`gateway2` & `intercept2`)
 
-To support secure websites over NDN, the gateway architecture is extended with an HTTPS-capable proxy and a dynamic SSL interception library (`libintercept2.so`).
-
 ### The Problem with HTTPS
 In order to send a normal HTTPS request, what usually happens is a TCP connection is made with the server (usually port 443) and the server sends a certificate that it is say "google.com". Once that is sent and verified, both the parties exchange symmetric keys to encrypt data and decrypt data.
 
