@@ -20,11 +20,11 @@ static thread_local bool bypass = false;           //To avoid the background int
 static const uint32_t BASE = 0x0AFF0000;           // 10.255.0.0/16 = fake range
 
 /* 
-Hook: overrides libc's resolver. 
-(extern "C" keeps the unmangled symbol name so the dynamic linker picks it.)
+This function overrides libc's resolver. 
 If the domain name is localhost, an IP literal or a bypass thread, it passes the request straight through to the real DNS system(dlysm).
 Otherwise it checks if we assigned a fake IP(10.255.x.y), if not it assigns a new one.
 It tricks curl by formatting that IP into the addrinfo format so the app thinks it successfully resolved the domain.
+Note: extern "C" keeps the unmangled symbol name so the dynamic linker picks it.
 */
 extern "C" int getaddrinfo(const char* node, const char* svc, const addrinfo* hints, addrinfo** res) {
   static auto real = (int(*)(const char*, const char*, const addrinfo*, addrinfo**))dlsym(RTLD_NEXT, "getaddrinfo");
