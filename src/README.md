@@ -10,7 +10,7 @@ This is the upgraded version of the HTTP shim that handles secure port 443 traff
 
 ## 3. gateway.cpp (The NDN-to-HTTP Gateway)
 This is the server-side daemon that sits on the NDN network waiting for `/http` interests.
-* **How it works:** It registers an interest filter with the local NFD. When an interest comes in, it checks your allowed host list, uses our translation helper to turn the NDN name into a real web URL, fetches the chunk using `libcurl`, wraps it into an NDN Data packet, signs it with the local KeyChain, and pushes it back out to the network.
+* **How it works:** It registers an interest filter with the local NFD. When an interest comes in, it checks your allowed host list, uses `translate.cpp` to turn the NDN name into a real web URL, fetches the chunk using `libcurl`, wraps it into an NDN Data packet, signs it with the local KeyChain, and pushes it back out to the network.
 
 ## 4. gateway2.cpp (The NDN-to-HTTPS Gateway)
 This is the secure counterpart to the regular gateway, handling everything under the `/https` prefix.
@@ -22,4 +22,4 @@ This is basically the translation engine shared by the gateways.
 
 ## 6. packetize.hpp (The NDN Data Wrapper)
 This is a small helper module for packaging everything up.
-* **How it works:** It takes raw payload bytes, wraps them into heap-allocated `ndn::Data` objects, updates freshness periods and `FinalBlockId` markers (so the client knows when a download is finished), signs everything with the default KeyChain, and puts it out on the face.
+* **How it works:** It takes raw payload bytes, wraps them into heap-allocated `ndn::Data` objects, sets the freshness periods and `FinalBlockId` markers (so the client knows when a download is finished), signs everything with the default KeyChain, and puts it out on the face.
