@@ -1,42 +1,5 @@
 # ndn-http-gateway
 
-```
- [ Client Application ]  --->  (1) Intercept Syscalls (intercept.cpp : done by faking the address then overriding connect())
-   (e.g., curl http://example.com)
-                                   │
-                                   ▼
-                            (2) Translate HTTP to NDN Interest (done by intercept.cpp itself)
-                                   │
-                                   ▼
-                            (3) Local Client NFD
-                                   │
-                                   ▼  [ UDP Tunnel / Face ]
-                            (4) Gateway NFD (NFD forwarding : done by the nfd itself)
-                                   │
-                                   ▼
-                            (5) Gateway Daemon (gateway.cpp : since /http was registered, control goes to this code everytime a /http packet comes)
-                                   │
-                                   ▼
-                            (6) Re-translate NDN Interest to HTTP GET (done by translate.cpp)
-                                   │
-                                   ▼
-                            (7) Web Server (Origin)
-                                   │
-                                   ▼
-                            (8) Return HTTP Body Data
-                                   │
-                                   ▼
-                            (9) Packetize Data into NDN Data Segments (`seg=0`, `seg=1`...)
-                                   │
-                                   ▼
-                            (10) Return NDN Data Packets back through NFDs to Client
-```
-Every node runs its own NFD; apps only talk to their local NFD.
-
-The endpoints of the NDN island are able to fetch ordinary HTTP content over ndn and vice versa through the below two programs:
-- **`gateway`** (daemon): registers `/http` with NFD; turns `Interest /http/<host>/<path>/seg=N` into an HTTP request.
-- **`libintercept.so`** (`LD_PRELOAD` client shim): makes unmodified programs such as `curl` speak NDN. `getaddrinfo` returns a fake IP, `connect` is redirected to a local socketpair, and the HTTP GET is turned into NDN Interests.
-
 ## 1. Build and launch
 ```bash
 docker network create ndnnet            # Creates a network
@@ -92,7 +55,7 @@ Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix
 
 ---
 
-## HTTPS / TLS Extension (`gateway2` & `intercept2`)
+## HTTPS Extension (`gateway2` & `intercept2`)
 
 To support secure websites over NDN, the gateway architecture is extended with an HTTPS-capable proxy and a dynamic SSL interception library (`libintercept2.so`).
 
@@ -139,4 +102,40 @@ src/        gateway.cpp  translate.cpp  packetize.cpp  intercept.cpp  gateway2.c
 scripts/    start-gateway.sh  add-route.sh  fetch-test.sh  start-gateway2.sh
 build/      (generated) gateway, libintercept.so, gateway2, libintercept2.so, packetize.o, translate.o
 ```
-A general outline of what each file can be found [here](src/README.md)
+A specifics of what each file can be found [here](src/README.md)
+
+## The Workflow of the whole process is below
+
+```
+ [ Client Application ]  --->  (1) Intercept Syscalls (intercept.cpp : done by faking the address then overriding connect())
+   (e.g., curl http://example.com)
+                                   │
+                                   ▼
+                            (2) Translate HTTP to NDN Interest (done by intercept.cpp itself)
+                                   │
+                                   ▼
+                            (3) Local Client NFD
+                                   │
+                                   ▼  [ UDP Tunnel / Face ]
+                            (4) Gateway NFD (NFD forwarding : done by the nfd itself)
+                                   │
+                                   ▼
+                            (5) Gateway Daemon (gateway.cpp : since /http was registered, control goes to this code everytime a /http packet comes)
+                                   │
+                                   ▼
+                            (6) Re-translate NDN Interest to HTTP GET (done by translate.cpp)
+                                   │
+                                   ▼
+                            (7) Web Server (Origin)
+                                   │
+                                   ▼
+                            (8) Return HTTP Body Data
+                                   │
+                                   ▼
+                            (9) Packetize Data into NDN Data Segments (`seg=0`, `seg=1`...)
+                                   │
+                                   ▼
+                            (10) Return NDN Data Packets back through NFDs to Client
+```
+Note: Every node runs its own NFD; apps only talk to their local NFD.
+
