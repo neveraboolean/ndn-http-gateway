@@ -56,10 +56,19 @@ extern "C" int getaddrinfo(const char* node, const char* svc, const addrinfo* hi
 }
 
 // ---- local CA / leaf certs ----YET TO UNDERSTAND THIS
-// Manages the local Certificate Authority (CA) and dynamically generates, signs and caches forged leaf certificates for requested hostnames on the fly.
+
 static X509* caCert; static EVP_PKEY *caKey, *leafKey;
 static std::map<std::string, SSL_CTX*> ctxs;
 
+/*
+It Loads the local Certificate Authority (CA) credentials from disk once.
+
+What it does:
+1. Checks the 'NDN_CA_DIR' environment variable (defaults to '/workspace/ca')
+2. Reads the local CA's public certificate ('ca.pem') and private key ('ca.key') so we have the cryptographic authority to sign forged certificates
+3. Generates a shared P-256 key (`leafKey`) that will be embedded inside every dynamically generated leaf certificate
+4. Uses `std::call_once` to ensure this initialization only happens once
+*/
 static void initCA() {
   static std::once_flag f;
 
@@ -71,6 +80,18 @@ static void initCA() {
   });
 }
 
+/*
+This function creates, signs, and caches an SSL server context with a forged certificate for any requested hostname on the fly.
+
+What it does:
+1. Ensures the local CA is loaded by calling `initCA()`
+2. Checks a thread-safe cache (`ctxs`) to see if we already forged a certificate for this specific hostname. If found, it returns the cached SSL context immediately[cite: 1].
+3. If not cached, it creates a brand new X.509 v3 certificate structure
+4. Sets the Common Name (CN) and Subject Alternative Name (SAN) to match the target `host` (e.g., `google.com`)
+5. Sets the issuer to our local CA and signs the certificate using the local CA's private key (`caKey`) and SHA-256
+6. Builds a new OpenSSL server context (`SSL_CTX`), binds the forged certificate and shared leaf key to it, caches it, and returns it so the local proxy 
+can complete a trusted TLS handshake with the app
+ */
 static SSL_CTX* ctxFor(const std::string& host) {
   initCA(); if (!caCert || !caKey || !leafKey) return nullptr;
   std::lock_guard<std::mutex> l(cmu);
