@@ -1,10 +1,3 @@
-/* 
-LD_PRELOAD Client Shim (Plain HTTP):
-1. getaddrinfo() hands out a fake 10.255.x.y IP per hostname and remembers the mapping.
-2. connect() to a fake IP is replaced by a socketpair; the app thinks it connected via TCP.
-3. A helper thread reads the app's HTTP request, sends NDN Interests, and writes an HTTP reply back.
-Note: every hooked connection is treated as HTTP regardless of port; use intercept2.cpp for HTTPS.
-*/
 #include <dlfcn.h>
 #include <netdb.h>
 #include <arpa/inet.h>
