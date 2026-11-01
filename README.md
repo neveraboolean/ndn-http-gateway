@@ -129,33 +129,38 @@ Note: Flags differ by ndn-tools version: check `ndnpeek -h` (`-P`/`--canbeprefix
 
 To support secure websites over NDN, the gateway architecture is extended with an HTTPS-capable proxy and a dynamic SSL interception library (`libintercept2.so`).
 
-### The Problem we face
-HTTPS traffic is end-to-end encrypted. A standard gateway cannot read or packetize encrypted TLS bytes coming from a secure client session (like `curl` or browser requests to port 443).
+### The Problem with HTTPS
+In order to send a normal HTTPS request, what usually happens is a TCP connection is made with the server (usually port 443) and the server sends a certificate that it is say "google.com". Once that is sent and verified, both the parties exchange symmetric keys to encrypt data and decrypt data.
+
+This poses a problem since we do not have the keys nor do we have the site's certificate.
 
 ### The Workaround Soln: Local CA & Dynamic Interception
-1. **Local Certificate Authority (CA):** We generate a local root CA (`ca/ca.key` and `ca/ca.pem`) on the host[cite: 1].
-2. **TLS Interception (`intercept2.so`):** When the client requests an HTTPS URL, the intercept library acts as a local proxy, dynamically generating and signing a dummy SSL certificate for the target domain on the fly using the local CA.
-3. **Client Trust:** By supplying the custom CA certificate (`--cacert ca/ca.pem`), the client trusts the interceptor's generated certificate, allowing plaintext requests to be safely unwrapped, mapped to `/https/...` NDN name components, and forwarded to the gateway.
+What we do is as follows:
+1. We ovverride the `getaddrinfo` and `connect` functions and we open a local linux socketpair where one end goes to curl and the other end goes to us (which is handled by our background `bridge()` thread) and now we have our own certificate(we have a local CA(`ca.pem` and `ca.key`)) which is trusted by the app (since we run `curl` with `--cacert ca.pem` so it knows to trust our local CA.)
 
+2. Now since `curl` completes a TLS handshake with our local thread, we get the keys and can decrypt the incoming HTTP request(`SSL_read`)
+
+3. Once our thread has the decrypted HTTP request we drop TLS entirely and package it as NDN interest packets and send it over the NDN network.
+
+4. Now once the NDN interest packet reaches the Gateway node, it uses `gateway2.cpp` file to call translate(to convert it back to a https request) and use `curl` to do its thing normally and once it gets the data back it again converts it to a data packet and sends it across the network. (Note: here no encryption keys are needed since `curl` handles everything)
 ### Quick Setup & Execution
 
 #### 1. Generate Local CA (Host, Run Once)
 ```bash
 mkdir -p ca && openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -keyout ca/ca.key -out ca/ca.pem -days 3650 -subj "/CN=NDN Gateway Local CA"
 echo "ca/" >> .gitignore
-```[cite: 1]
+```
 
 #### 2. Build Binaries (Gateway Node)
 ```bash
 make
 scripts/start-gateway2.sh
-```[cite: 1]
+```
 
 #### 3. Register Routes & Test (Client Node)
 ```bash
 scripts/add-route.sh gateway
 LD_PRELOAD=/workspace/build/libintercept2.so curl -4 -s --noproxy '*' --cacert /workspace/ca/ca.pem "https://httpbin.org/get"
-```[cite: 1]
 ```
 
 ## Layout
