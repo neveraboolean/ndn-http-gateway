@@ -1,8 +1,48 @@
 # Explanation of the code files:
 
-## 1. intercept.cpp (HTTP client shim)
-This is an `LD_PRELOAD` library that hooks into standard HTTP apps (like `curl`). 
-* **How it works:** When the app tries to resolve a website hostname, the shim steps in and gives it a fake local IP (`10.255.x.y`). When the app tries to `connect()` to that fake IP, the shim intercepts it and opens a local `socketpair` instead. Behind the scenes, a background thread reads the app's HTTP request, turns it into an NDN Interest, gets the data from the local NFD forwarder, and gives the HTTP reply right back to the app.
+## 1. intercept.cpp (The HTTP Client Shim)
+
+* **How it works(in brief):** When the app tries to resolve a website hostname, the shim steps in and gives it a fake local IP (`10.255.x.y`). When the app tries to `connect()` to that fake IP, the shim intercepts it and opens a local `socketpair` instead. Behind the scenes, a background thread reads the app's HTTP request, turns it into an NDN Interest, gets the data from the local NFD forwarder, and gives the HTTP reply right back to the app.
+
+* **Detailed Explanation:**
+
+1. `LD_PRELOAD` loads our `libintercept.so` file before the all the standard system libraries. Hence when we run curl with `LD_PRELOAD` our custom `getaddrinfo` and `connect` functions run.
+
+2. The `getaddrinfo` function
+
+    1. The arguments for the `getaddrinfo` function are:
+        1. `node`-> hostname or ip address
+        2. `svc(or service)`-> service name(like http) or port number
+        3. `hints`-> any other information like IPv4/IPv6 or TCP/UDP
+        4. `res`-> its the resulting pointer pointing to a linked list with all resolved names
+
+        We define `real` as the function pointer of the original `getaddrinfo` function(called using dlsym)
+
+    2. Now we check if our already present mapping of fake addresses to hostnames has the hostname, if it doesn't have one we assign a new one for them.
+    3. We then assign `buf` the new address and pass it in the `real` function.
+    4. NOTE: `htonl` changes the byte order thus changing the `ip` variable byte order so that we can use it in the function `inet_ntop` as an argument.
+
+3. The `connect` function
+
+    1. Here the arguments are:
+        1. `fd`-> The file descripter of the local socket on the computer
+        2. `sa`-> The pointer to the destination socket address
+        3. `len`-> Size of the socket address structure
+
+        Again as above 'real' is the function pointer of the original `connect` function.  
+    
+    2. `ip` stands for the destination socket address and `host` is the hostname of the request(or mapped to `ip`).
+    3. We open a local socket pair with the function between the two endpoints `sv[0]` and `sv[1]` with the function `socketpair(AF_UNIX, SOCK_STREAM, 0, sv)` and then set `fd` to `sv[0]` using the `dup2` function and passes`sv[1]` to the `bridge` function as an argument.
+    4. NOTE: `fcntl` is the file control function that sets `fl` as the flags and then we make sure `fd` is set as NONBLOCKING.
+
+4. The `bridge` function
+
+    1. Arguments are:
+        1. `fd` -> one end of the local socket pair(we passed `sv[1]` here)
+        2. `host` -> the hostname or url of the request
+    2. This function reads the `HTTP` request from `sv[1]` and then converts it into a NDN interest packet.
+    3. It sends forwards the interest packet through NFD and once it recieves a response it reconstructs the `HTTP` response and writes it to `sv[1]` and then closes it.
+
 
 ## 2. intercept2.cpp (HTTPS client Shim)
 This is the upgraded version of the HTTP shim that handles secure port 443 traffic. 
