@@ -61,7 +61,7 @@ When the app tries to resolve a website hostname, the `LD_PRELOAD` file (`libint
 ## 3. translate.cpp
 This is basically translates the NDN name to a URL
 
-1. It takes the NDN name and runs the `nametoUrl` function that first typecasts the bytes to string and then uses the `curl` library function to ensure the URL is properly formed. (It uses the `curl` library to make sure things like ` ` are converted to `%20` etc).
+1. It takes the NDN name and runs the `nametoUrl` function that first typecasts the bytes to string and then uses `curl` library functions to ensure the URL is properly formed. (It uses the `curl` library to make sure things like ` ` are converted to `%20` etc).
 2. Then it runs its `fetch` function that runs a HTTP range request using `libcurl` to fetch the data then the callback function `wb()` collects the response body and the the callback function `wh()` collects the size
 3. `nametoUrl(n,r)` takes an NDN name `n` and a pointer to the translated response `r` and updates `r` in the function. It returns `1` if the name is converted and 0 if there is an error in the NDN name.
 4. `fetch(url,seg,sz)` takes the `url` to fetch from, `seg`(segment number) specifically and `sz`(the desired size of the resulting fetch of the segment). It Outputs a `Resp` structure which contains `body`(content), `total`(size), `status`, `err`.
