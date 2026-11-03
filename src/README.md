@@ -2,7 +2,7 @@
 
 ## 1. intercept.cpp
 
-* **How it works(in brief):** When the app tries to resolve a website hostname, the `LD_PRELOAD` file (`libintercept.so`) steps in and gives it a fake local IP (`10.255.x.y`). When the app tries to `connect()` to that fake IP, the shim intercepts it and opens a local `socketpair` instead. A background thread reads the app's HTTP request, turns it into an NDN Interest, gets the data from the local NFD forwarder, and gives the HTTP reply right back to the app.
+When the app tries to resolve a website hostname, the `LD_PRELOAD` file (`libintercept.so`) steps in and gives it a fake local IP (`10.255.x.y`). When the app tries to `connect()` to that fake IP, the shim intercepts it and opens a local `socketpair` instead. A background thread reads the app's HTTP request, turns it into an NDN Interest, gets the data from the local NFD forwarder, and gives the HTTP reply right back to the app.
 
 * **Detailed Explanation:**
 
@@ -53,14 +53,18 @@
         3. We then construct the HTTP response back and send it to back using the `wall` function.
 
 ## 2. gateway.cpp
-This is the server-side daemon that sits on the NDN network waiting for `/http` interests.
-* **How it works:** It registers an interest filter with the local NFD. When an interest comes in, it checks your allowed host list, uses `translate.cpp` to turn the NDN name into a real web URL, fetches the chunk using `libcurl`, wraps it into an NDN Data packet, signs it with the local KeyChain, and pushes it back out to the network.
+
+1. We listen to the incoming `http` requests using the `setInterestFilter` function which invokes the callback `onInterest` when a matching request is received.
+2. The `OnInterest` function uses the `nametoUrl` of the translate file to obtain `r`(the url) and uses the `fetch` function(also from translate.cpp) on the url to recieve the response `p`(of struct type `Resp`).
+3. We then use the `putSegment` function from packetize.cpp to make the NDN data packet and send it back.
 
 ## 3. translate.cpp
 This is basically translates the NDN name to a URL
-* **How it works:** 
+
 1. It takes the NDN name and runs the `nametoUrl` function that first typecasts the bytes to string and then uses the `curl` library function to ensure the URL is properly formed. (It uses the `curl` library to make sure things like ` ` are converted to `%20` etc).
 2. Then it runs its `fetch` function that runs a HTTP range request using `libcurl` to fetch the data then the callback function `wb()` collects the response body and the the callback function `wh()` collects the size
+3. `nametoUrl(n,r)` takes an NDN name `n` and a pointer to the translated response `r` and updates `r` in the function. It returns `1` if the name is converted and 0 if there is an error in the NDN name.
+4. `fetch(url,seg,sz)` takes the `url` to fetch from, `seg`(segment number) specifically and `sz`(the desired size of the resulting fetch of the segment). It Outputs a `Resp` structure which contains `body`(content), `total`(size), `status`, `err`.
 
 
 ## 4. packetize.cpp 
