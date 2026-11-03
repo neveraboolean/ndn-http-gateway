@@ -1,6 +1,6 @@
 # ndn-http-gateway
 
-1. Build and launch
+### 1. Build and launch
 ```bash
 docker network create ndnnet            # Creates a network
 docker build -t ndn-http-gw .           # ~10-20 min first time (compiles ndn-cxx, NFD, ndn-tools)
@@ -9,7 +9,7 @@ docker run -it --name client1 --net ndnnet -v "$PWD:/workspace" ndn-http-gw bash
 ```
 After the above steps you would be running the client and the gateway and in their workspace folder
 
-2. Compiling the code files using make and starting the NFD in each container
+### 2. Compiling the code files using make and starting the NFD in each container
 ```bash
 make          
 ```
@@ -25,20 +25,20 @@ Note: NFD should be run in both the client and the gateway containers
 
 Note: NFD should actually start automatically via the entrypoint (check: `nfdc status`, log: `nfdlog`). But for Manual start as above: `nfd --config /usr/local/etc/ndn/nfd.conf &`.
 
-3. NFD and routes
+### 3. NFD and routes
 
-On **gateway**:
+On gateway:
 ```bash
 scripts/start-gateway.sh        # creates /gw key if missing, runs build/gateway
 ```
-On each **client**:
+On each client:
 ```bash
 scripts/add-route.sh gateway    # = nfdc route add /http udp4://<gateway-ip>:6363
 nfdc fib list ; nfdc face list  # verify /http -> udp4 face
 ```
 
-4. Test
-**A. curl with LD_PRELOAD** (client node):
+### 4. Test
+A. curl with LD_PRELOAD (client node):
 ```bash
 LD_PRELOAD=./build/libintercept.so curl -4 --noproxy '*' http://neverssl.com/     # The -4 is there since my code is only compatible with IPv4 (Yet to fix)
 ```
@@ -46,7 +46,7 @@ Gateway log shows `http://neverssl.com/ seg=0 status=206 ...`;
 
 We can verify this using `tcpdump -ni eth0 'udp port 6363'` which shows NDN, no TCP/80 from the client.
 
-**B. Pure NDN Interest** (client node):
+B. Pure NDN Interest (client node):
 ```bash
 ndnpeek -P /http/neverssl.com/        # CanBePrefix: no seg component needed; gateway answers seg=0
 ndnpeek -p /http/neverssl.com/seg=0   # exact segment name
