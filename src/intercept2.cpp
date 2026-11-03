@@ -48,15 +48,13 @@ extern "C" int getaddrinfo(const char* node, const char* svc, const addrinfo* hi
   return realGai()(buf, svc, &h, res);
 }
 
-// ---- local CA / leaf certs ----
+//local CA / leaf certificates
 
 static X509* caCert; static EVP_PKEY *caKey, *leafKey;
 static std::map<std::string, SSL_CTX*> ctxs;
 
 /*
 It Loads the local Certificate Authority (CA) credentials from disk once.
-
-What it does:
 1. Checks the 'NDN_CA_DIR' environment variable (defaults to '/workspace/ca')
 2. Reads the local CA's public certificate ('ca.pem') and private key ('ca.key') so we have the cryptographic authority to sign forged certificates
 3. Generates a shared P-256 key (`leafKey`) that will be embedded inside every dynamically generated leaf certificate
@@ -76,7 +74,7 @@ static void initCA() {
 /*
 This function creates, signs, and caches an SSL server context with a forged certificate for any requested hostname on the fly.
 
-What it does:
+What it does is given below: 
 1. Ensures the local CA is loaded by calling `initCA()`
 2. Checks a thread-safe cache (`ctxs`) to see if we already forged a certificate for this specific hostname. If found, it returns the cached SSL context immediately
 3. If not cached, it creates a brand new X.509 v3 certificate structure

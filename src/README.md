@@ -73,9 +73,9 @@ signs it with the local KeyChain, and pushes it back onto the Face.
 
 
 ## 5. intercept2.cpp
-This is the upgraded version of the HTTP shim that handles secure port 443 traffic. 
-* **How it works:** HTTPS is tricky because it's heavily encrypted. For this to work, `intercept2` acts as a local proxy. It loads a local CA (`ca.pem`/`ca.key`) and on-the-fly dynamically generates and signs a forged certificate for whatever website you're trying to visit. Because your test client trusts that local CA, it completes a TLS handshake with our local thread. That lets our shim decrypt the request, turn it into an NDN `/https/...` interest, get the signed chunks back, re-encrypt them, and hand them back to the app securely.
+The major difference between this one and intercept.cpp is that here when we open a local socketpair, we need to provide a certificate to establish a connection and proceed. This is done by having a trusted local CA (`ca.pem`/`ca.key`) which on-the-fly(dynamically) generates and signs a forged certificate for whatever website you're trying to visit. Now it completes a TLS handshake with our local thread. This lets our code decrypt the request and turn it into an NDN interest packet and proceed with the same method as done in intercept.cpp.
+
 
 ## 6. gateway2.cpp
-This is the secure counterpart to the regular gateway, handling everything under the `/https` prefix.
-* **How it works:** It's super similar to the regular gateway, but it checks whether the translated URL actually starts with `https://`. It uses `libcurl` with proper TLS support to talk to  servers, gets the data, decrypts it, and makesvit into signed NDN Data packets.
+The only major difference here is that it checks if the URL (after translating) starts with `https://`, and then uses libcurl` with proper TLS support to obtain the data and decrypt it and like before make it into a data packet and forward it.
+
