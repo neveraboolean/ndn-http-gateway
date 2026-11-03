@@ -28,7 +28,6 @@ static const uint32_t BASE = 0x0AFF0000;
 // Function-pointer type matching libc getaddrinfo.
 typedef int (*gai_t)(const char*, const char*, const addrinfo*, addrinfo**);
 
-// Lazily resolve and cache the real getaddrinfo (RTLD_NEXT = next definition after this library).
 static gai_t realGai() { static gai_t r = (gai_t)dlsym(RTLD_NEXT, "getaddrinfo"); return r; }
 
 // Intercepts getaddrinfo to map regular hostnames to fake 10.255.x.y local IPs.
