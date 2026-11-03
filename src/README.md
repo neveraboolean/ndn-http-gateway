@@ -1,12 +1,12 @@
 # Explanation of the code files:
 
-## 1. intercept.cpp (The HTTP Client Shim)
+## 1. intercept.cpp
 
-* **How it works(in brief):** When the app tries to resolve a website hostname, the shim steps in and gives it a fake local IP (`10.255.x.y`). When the app tries to `connect()` to that fake IP, the shim intercepts it and opens a local `socketpair` instead. Behind the scenes, a background thread reads the app's HTTP request, turns it into an NDN Interest, gets the data from the local NFD forwarder, and gives the HTTP reply right back to the app.
+* **How it works(in brief):** When the app tries to resolve a website hostname, the `LD_PRELOAD` file (`libintercept.so`) steps in and gives it a fake local IP (`10.255.x.y`). When the app tries to `connect()` to that fake IP, the shim intercepts it and opens a local `socketpair` instead. A background thread reads the app's HTTP request, turns it into an NDN Interest, gets the data from the local NFD forwarder, and gives the HTTP reply right back to the app.
 
 * **Detailed Explanation:**
 
-1. `LD_PRELOAD` loads our `libintercept.so` file before the all the standard system libraries. Hence when we run curl with `LD_PRELOAD` our custom `getaddrinfo` and `connect` functions run.
+1. `LD_PRELOAD` loads our `libintercept.so` file before the all the standard system libraries. Hence when we run `curl` with `LD_PRELOAD` our custom `getaddrinfo` and `connect` functions run.
 
 2. The `getaddrinfo` function
 
@@ -40,26 +40,38 @@
     1. Arguments are:
         1. `fd` -> one end of the local socket pair(we passed `sv[1]` here)
         2. `host` -> the hostname or url of the request
-    2. This function reads the `HTTP` request from `sv[1]` and then converts it into a NDN interest packet.
-    3. It sends forwards the interest packet through NFD and once it recieves a response it reconstructs the `HTTP` response and writes it to `sv[1]` and then closes it.
+    2. This function reads the `HTTP` request from `sv[1]` and then converts it into a NDN interest packet by the following process:
+        1. It gets only the query and the target details by taking the substring between the two spaces.
+        2. It then assigns `query` to the substring after `?` and the substring before this is `target`.
+        3. `Name` is an NDN object and `name::Component` constructs an individual name component and thus our NDN name `base` becomes `/http/host` where `host` is the hostname.
+        4. We then split target in places where `/` appear and append it to `base`.
+        5. Finally we append `query` as well. Note that the query is being kept as a single component rather than splitting it like we did with `target`
+        6. It creates an interest packet using `Interest` and  also appends the `seg` number.
+    3. We then forward the interest using `face.expressInterest`
+        1. The function has a Data callback function that converts the recieved data into a char of bytes `body` when a matching occurs.
+        2. The other two callbacks are the `Nack` and `Timeout` callbacks, but the code doesnt do anything when they occur.
+        3. We then construct the HTTP response back and send it to back using the `wall` function.
 
-
-## 2. intercept2.cpp (HTTPS client Shim)
-This is the upgraded version of the HTTP shim that handles secure port 443 traffic. 
-* **How it works:** HTTPS is tricky because it's heavily encrypted. For this to work, `intercept2` acts as a local proxy. It loads a local CA (`ca.pem`/`ca.key`) and on-the-fly dynamically generates and signs a forged certificate for whatever website you're trying to visit. Because your test client trusts that local CA, it completes a TLS handshake with our local thread. That lets our shim decrypt the request, turn it into an NDN `/https/...` interest, get the signed chunks back, re-encrypt them, and hand them back to the app securely.
-
-## 3. gateway.cpp (NDN -HTTP gateway)
+## 2. gateway.cpp
 This is the server-side daemon that sits on the NDN network waiting for `/http` interests.
 * **How it works:** It registers an interest filter with the local NFD. When an interest comes in, it checks your allowed host list, uses `translate.cpp` to turn the NDN name into a real web URL, fetches the chunk using `libcurl`, wraps it into an NDN Data packet, signs it with the local KeyChain, and pushes it back out to the network.
 
-## 4. gateway2.cpp (NDN -HTTPS gateway)
+## 3. translate.cpp
+This is basically translates the NDN name to a URL
+* **How it works:** 
+1. It takes the NDN name and runs the `nametoUrl` function that first typecasts the bytes to string and then uses the `curl` library function to ensure the URL is properly formed. (It uses the `curl` library to make sure things like ` ` are converted to `%20` etc).
+2. Then it runs its `fetch` function that runs a HTTP range request using `libcurl` to fetch the data then the callback function `wb()` collects the response body and the the callback function `wh()` collects the size
+
+
+## 4. packetize.cpp 
+Is a helper function to construct an NDN Data packet containing the payload segment, sets its freshness period and final block marker, 
+signs it with the local KeyChain, and pushes it back onto the Face.
+
+
+## 5. intercept2.cpp
+This is the upgraded version of the HTTP shim that handles secure port 443 traffic. 
+* **How it works:** HTTPS is tricky because it's heavily encrypted. For this to work, `intercept2` acts as a local proxy. It loads a local CA (`ca.pem`/`ca.key`) and on-the-fly dynamically generates and signs a forged certificate for whatever website you're trying to visit. Because your test client trusts that local CA, it completes a TLS handshake with our local thread. That lets our shim decrypt the request, turn it into an NDN `/https/...` interest, get the signed chunks back, re-encrypt them, and hand them back to the app securely.
+
+## 6. gateway2.cpp
 This is the secure counterpart to the regular gateway, handling everything under the `/https` prefix.
 * **How it works:** It's super similar to the regular gateway, but it checks whether the translated URL actually starts with `https://`. It uses `libcurl` with proper TLS support to talk to  servers, gets the data, decrypts it, and makesvit into signed NDN Data packets.
-
-## 5. translate.cpp & translate.hpp (NDN to URL conversion)
-This is basically the translation engine shared by the gateways.
-* **How it works:** It parses messy NDN name structures—like schemes, hostnames, paths, query strings, and trailing segment numbers (`seg=N`)—and turns them into a clean URL. It also manages HTTP Range requests via `libcurl` so we can fetch files chunk-by-chunk, handling things like `Content-Range` headers and fallback `200 OK` responses by slicing the data locally.
-
-## 6. packetize.hpp 
-This is a small helper module for packaging everything up.
-* **How it works:** It takes raw payload bytes, wraps them into heap-allocated `ndn::Data` objects, sets the freshness periods and `FinalBlockId` markers (so the client knows when a download is finished), signs everything with the default KeyChain, and puts it out on the face.
