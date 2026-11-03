@@ -48,7 +48,7 @@ extern "C" int getaddrinfo(const char* node, const char* svc, const addrinfo* hi
   return realGai()(buf, svc, &h, res);
 }
 
-// ---- local CA / leaf certs ----YET TO UNDERSTAND THIS
+// ---- local CA / leaf certs ----
 
 static X509* caCert; static EVP_PKEY *caKey, *leafKey;
 static std::map<std::string, SSL_CTX*> ctxs;
@@ -78,7 +78,7 @@ This function creates, signs, and caches an SSL server context with a forged cer
 
 What it does:
 1. Ensures the local CA is loaded by calling `initCA()`
-2. Checks a thread-safe cache (`ctxs`) to see if we already forged a certificate for this specific hostname. If found, it returns the cached SSL context immediately[cite: 1].
+2. Checks a thread-safe cache (`ctxs`) to see if we already forged a certificate for this specific hostname. If found, it returns the cached SSL context immediately
 3. If not cached, it creates a brand new X.509 v3 certificate structure
 4. Sets the Common Name (CN) and Subject Alternative Name (SAN) to match the target `host` (e.g., `google.com`)
 5. Sets the issuer to our local CA and signs the certificate using the local CA's private key (`caKey`) and SHA-256
